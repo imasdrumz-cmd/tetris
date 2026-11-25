@@ -148,11 +148,11 @@ class InputController {
     const narrow = window.innerWidth <= 400;
     const reserveBottom = coarse ? 120 : 24;
     const reserveTop = coarse ? 36 : 24;
-    const hudWidth = narrow ? 78 : 92;
-    const opponentsWidth = mode === 'online' ? (narrow ? 54 : 64) : 0;
-    const gaps = mode === 'online' ? 20 : 10;
+    const hudWidth = narrow ? 76 : 88;
+    const opponentsWidth = mode === 'online' ? (narrow ? 38 : 46) : 0;
+    const gaps = mode === 'online' ? 16 : 8;
     const availH = window.innerHeight - reserveBottom - reserveTop;
-    const availW = window.innerWidth - 20 - hudWidth - opponentsWidth - gaps;
+    const availW = window.innerWidth - 16 - hudWidth - opponentsWidth - gaps;
     const byHeight = Math.floor(availH / TetrisCore.VISIBLE_ROWS);
     const byWidth = Math.floor(availW / TetrisCore.COLS);
     return Math.max(12, Math.min(byHeight, byWidth, 30));
@@ -289,7 +289,7 @@ class InputController {
     mode = 'online';
     localDead = false;
     matchEndAt = detail.startAt + (detail.durationMs || 0);
-    el('stat-time-row').hidden = !detail.durationMs;
+    el('match-timer').hidden = !detail.durationMs;
     el('local-status-overlay').hidden = true;
     setupPeripherals();
     showScreen('game');
@@ -326,7 +326,7 @@ class InputController {
       const box = document.createElement('div');
       box.className = 'mini-board';
       const canvas = document.createElement('canvas');
-      canvas.width = 50; canvas.height = 100;
+      canvas.width = 34; canvas.height = 68;
       const nameEl = document.createElement('div');
       nameEl.className = 'mini-name';
       nameEl.textContent = p.name;
@@ -343,7 +343,7 @@ class InputController {
     const m = miniEls.get(detail.id);
     if (!m || !detail.grid) return;
     m.scoreEl.textContent = detail.score;
-    TetrisRender.drawBoard(m.ctx, detail.grid, 5, { flat: true, skipGridLines: true });
+    TetrisRender.drawBoard(m.ctx, detail.grid, 3.4, { flat: true, skipGridLines: true });
     m.box.classList.toggle('dead', !detail.alive);
   }
 
@@ -434,7 +434,7 @@ class InputController {
     el('stat-lines').textContent = state.lines;
     el('stat-level').textContent = state.level;
     if (mode === 'online' && matchEndAt) {
-      el('stat-time').textContent = formatClock(matchEndAt - Date.now());
+      el('match-timer').textContent = formatClock(matchEndAt - Date.now());
     }
     TetrisRender.drawPiecePreview(holdCanvas, state.hold, 18);
     state.next.forEach((t, i) => TetrisRender.drawPiecePreview(nextCanvases[i], t, 18));
@@ -500,6 +500,7 @@ class InputController {
 
     const onDown = (e) => {
       if (!game || paused || !game.alive) return;
+      e.preventDefault();
       active = true;
       moved = false;
       startX = e.clientX;
