@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Tetris</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='10' y='10' width='35' height='35' rx='6' fill='%237FB0C9'/%3E%3Crect x='55' y='10' width='35' height='35' rx='6' fill='%23D9B65C'/%3E%3Crect x='10' y='55' width='35' height='35' rx='6' fill='%239C7BC9'/%3E%3Crect x='55' y='55' width='35' height='35' rx='6' fill='%237FBF8E'/%3E%3C/svg%3E">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tetris">
+<meta name="theme-color" content="#0b0d12">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/tetris.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- MAIN MENU -->
+  <section class="screen active" id="screen-menu">
+    <div class="menu-card">
+      <div class="brand">
+        <div class="brand-blocks">
+          <span style="background:#7FB0C9"></span><span style="background:#D9B65C"></span>
+          <span style="background:#9C7BC9"></span><span style="background:#7FBF8E"></span>
+        </div>
+        <h1>TETRIS</h1>
+      </div>
+      <p class="high-score">Best score: <strong id="high-score-value">0</strong></p>
+      <div class="menu-actions">
+        <button class="btn btn-primary" id="btn-solo">Solo Play</button>
+        <button class="btn btn-ghost" id="btn-online">Play Online</button>
+      </div>
+      <button class="link-btn" id="btn-show-controls">Controls</button>
+    </div>
+  </section>
+
+  <!-- CONTROLS OVERLAY -->
+  <div class="overlay" id="overlay-controls">
+    <div class="panel">
+      <h2>Controls</h2>
+      <ul class="controls-list">
+        <li><span class="key">&larr; &rarr;</span> Move</li>
+        <li><span class="key">&darr;</span> Soft drop</li>
+        <li><span class="key">Space</span> Hard drop</li>
+        <li><span class="key">&uarr; / X</span> Rotate clockwise</li>
+        <li><span class="key">Z</span> Rotate counter-clockwise</li>
+        <li><span class="key">C / Shift</span> Hold piece</li>
+        <li><span class="key">Esc</span> Pause</li>
+      </ul>
+      <button class="btn btn-ghost" id="btn-close-controls">Close</button>
+    </div>
+  </div>
+
+  <!-- ONLINE MENU -->
+  <section class="screen" id="screen-online-menu">
+    <div class="menu-card">
+      <h2>Play Online</h2>
+      <label class="field">
+        <span>Your name</span>
+        <input type="text" id="input-name" maxlength="16" placeholder="Player">
+      </label>
+
+      <div class="online-tabs">
+        <button class="tab-btn active" data-tab="create">Create Room</button>
+        <button class="tab-btn" data-tab="join">Join Room</button>
+      </div>
+
+      <div class="tab-pane active" data-pane="create">
+        <p class="hint">Start a private room and share the code with friends.</p>
+        <button class="btn btn-primary" id="btn-create-room">Create Room</button>
+      </div>
+
+      <div class="tab-pane" data-pane="join">
+        <label class="field">
+          <span>Room code</span>
+          <input type="text" id="input-code" maxlength="5" placeholder="ABCDE" style="text-transform:uppercase">
+        </label>
+        <button class="btn btn-primary" id="btn-join-room">Join Room</button>
+      </div>
+
+      <p class="error-text" id="online-error"></p>
+      <button class="link-btn" id="btn-back-to-menu">Back</button>
+    </div>
+  </section>
+
+  <!-- LOBBY -->
+  <section class="screen" id="screen-lobby">
+    <div class="menu-card">
+      <h2>Room</h2>
+      <div class="room-code-box">
+        <span class="room-code" id="lobby-code">-----</span>
+        <button class="btn btn-small" id="btn-copy-code">Copy</button>
+      </div>
+      <p class="hint">Share this code so others can join.</p>
+      <ul class="roster-list" id="roster-list"></ul>
+      <button class="btn btn-primary" id="btn-start-game" hidden>Start Game</button>
+      <p class="hint" id="waiting-hint">Waiting for the host to start&hellip;</p>
+      <button class="link-btn" id="btn-leave-lobby">Leave Room</button>
+    </div>
+  </section>
+
+  <!-- GAME -->
+  <section class="screen" id="screen-game">
+    <div class="peripherals" id="peripherals"></div>
+
+    <div class="game-layout">
+      <aside class="side-panel left">
+        <div class="box">
+          <h3>Hold</h3>
+          <canvas id="canvas-hold" width="96" height="72"></canvas>
+        </div>
+        <div class="box stats">
+          <div><span>Score</span><strong id="stat-score">0</strong></div>
+          <div><span>Lines</span><strong id="stat-lines">0</strong></div>
+          <div><span>Level</span><strong id="stat-level">1</strong></div>
+        </div>
+      </aside>
+
+      <div class="board-wrap">
+        <canvas id="canvas-main" width="300" height="600"></canvas>
+        <div class="countdown" id="countdown" hidden></div>
+        <div class="pause-overlay" id="pause-overlay" hidden><span>Paused</span></div>
+        <div class="pause-overlay" id="local-status-overlay" hidden><span id="local-status-text"></span></div>
+      </div>
+
+      <aside class="side-panel right">
+        <div class="box">
+          <h3>Next</h3>
+          <canvas id="canvas-next-0" width="96" height="72"></canvas>
+          <canvas id="canvas-next-1" width="96" height="72"></canvas>
+          <canvas id="canvas-next-2" width="96" height="72"></canvas>
+        </div>
+      </aside>
+    </div>
+
+    <div class="touch-controls" id="touch-controls">
+      <button class="tc-btn tc-hold" id="tc-hold" aria-label="Hold piece">Hold</button>
+      <button class="tc-btn" id="tc-rotate-ccw" aria-label="Rotate left">&#10226;</button>
+      <button class="tc-btn" id="tc-rotate-cw" aria-label="Rotate right">&#10227;</button>
+      <button class="tc-btn" id="tc-left" aria-label="Move left">&larr;</button>
+      <button class="tc-btn" id="tc-down" aria-label="Soft drop">&darr;</button>
+      <button class="tc-btn" id="tc-right" aria-label="Move right">&rarr;</button>
+      <button class="tc-btn tc-harddrop" id="tc-harddrop" aria-label="Hard drop">DROP</button>
+    </div>
+  </section>
+
+  <!-- GAME OVER -->
+  <section class="screen" id="screen-gameover">
+    <div class="menu-card">
+      <h2 id="gameover-title">Game Over</h2>
+      <p class="new-high" id="new-high-badge" hidden>New high score!</p>
+      <table class="results-table" id="results-table" hidden>
+        <tbody></tbody>
+      </table>
+      <div class="solo-result" id="solo-result" hidden>
+        <p>Score: <strong id="solo-score">0</strong></p>
+        <p class="hint">Best: <strong id="solo-best">0</strong></p>
+      </div>
+      <div class="menu-actions">
+        <button class="btn btn-primary" id="btn-play-again" hidden>Play Again</button>
+        <button class="btn btn-ghost" id="btn-back-to-menu-2">Back to Menu</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="js/tetris-engine.js"></script>
+<script src="js/tetris-render.js"></script>
+<script src="js/tetris-network.js"></script>
+<script src="js/tetris-main.js"></script>
+</body>
+</html>
