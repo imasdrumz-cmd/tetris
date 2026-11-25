@@ -229,6 +229,16 @@ html, body {
   gap: 5px;
 }
 .side-panel.opponents:empty { display: none; }
+.hud-opponents-slot:empty { display: none; }
+.hud-opponents-slot .side-panel.opponents {
+  width: 100%;
+  flex-direction: row;
+  flex-wrap: wrap;
+  max-height: none;
+  overflow: visible;
+  margin-top: 4px;
+  gap: 4px;
+}
 
 .box {
   background: var(--panel);
@@ -317,6 +327,10 @@ html, body {
 @media (pointer: coarse) {
   #app:has(#screen-game.active) { align-items: flex-start; }
   #screen-game.active { padding-bottom: 110px; }
+  .hold-box { display: none; }
+  .hud-opponents-slot .mini-board { padding: 2px; width: calc(50% - 2px); }
+  .hud-opponents-slot .mini-board canvas { width: 100%; height: auto; }
+  .hud-opponents-slot .mini-name { font-size: 0.56rem; max-width: 100%; }
 
   .touch-controls {
     display: block;
