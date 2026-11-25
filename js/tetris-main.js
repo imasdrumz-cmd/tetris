@@ -149,8 +149,10 @@ class InputController {
     const reserveBottom = coarse ? 120 : 24;
     const reserveTop = coarse ? 36 : 24;
     const hudWidth = narrow ? 76 : 88;
-    const opponentsWidth = mode === 'online' ? (narrow ? 38 : 46) : 0;
-    const gaps = mode === 'online' ? 16 : 8;
+    // On coarse/phone layouts, opponents move inside the HUD column instead of
+    // sitting beside the board, so they no longer cost the board any width.
+    const opponentsWidth = (mode === 'online' && !coarse) ? (narrow ? 38 : 46) : 0;
+    const gaps = (mode === 'online' && !coarse) ? 16 : 8;
     const availH = window.innerHeight - reserveBottom - reserveTop;
     const availW = window.innerWidth - 16 - hudWidth - opponentsWidth - gaps;
     const byHeight = Math.floor(availH / TetrisCore.VISIBLE_ROWS);
@@ -319,6 +321,17 @@ class InputController {
 
   function setupPeripherals() {
     const container = el('peripherals');
+    // On phones, opponents move into the leftover space in the HUD column
+    // (below Hold/Next) instead of taking a column of their own beside the
+    // board, so the board itself can be as large as possible.
+    const coarse = window.matchMedia('(pointer: coarse)').matches;
+    const slot = el('hud-opponents-slot');
+    const gameLayout = document.querySelector('.game-layout');
+    if (coarse) {
+      if (container.parentElement !== slot) slot.appendChild(container);
+    } else if (container.parentElement !== gameLayout) {
+      gameLayout.insertBefore(container, gameLayout.firstElementChild);
+    }
     container.innerHTML = '';
     miniEls.clear();
     if (!room) return;
@@ -565,4 +578,17 @@ class InputController {
     e.preventDefault();
     if (game && !paused) game.hardDrop();
   });
+
+  // Extra safety net against iOS Safari's double-tap-to-zoom: some iOS
+  // versions still trigger it even with touch-action:none on the tapped
+  // element, since it's a system-level gesture. Suppressing the *second*
+  // touchend of a fast double-tap is the standard workaround — scoped to
+  // just the board (where rapid taps-to-rotate happen), not the whole page,
+  // so it never swallows ordinary button taps elsewhere.
+  let lastBoardTouchEnd = 0;
+  mainCanvas.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    if (now - lastBoardTouchEnd < 350) e.preventDefault();
+    lastBoardTouchEnd = now;
+  }, { passive: false });
 })();
