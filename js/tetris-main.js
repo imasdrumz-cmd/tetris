@@ -134,6 +134,7 @@ class InputController {
   let paused = false;
   let localDead = false;
   let sendStateTimer = 0;
+  let matchEndAt = null;
   const miniEls = new Map();
 
   const mainCanvas = el('canvas-main');
@@ -144,10 +145,14 @@ class InputController {
 
   function computeCellSize() {
     const coarse = window.matchMedia('(pointer: coarse)').matches;
-    const reserveBottom = coarse ? 210 : 24;
-    const reserveTop = coarse ? 72 : 24;
+    const narrow = window.innerWidth <= 400;
+    const reserveBottom = coarse ? 120 : 24;
+    const reserveTop = coarse ? 36 : 24;
+    const hudWidth = narrow ? 78 : 92;
+    const opponentsWidth = mode === 'online' ? (narrow ? 54 : 64) : 0;
+    const gaps = mode === 'online' ? 20 : 10;
     const availH = window.innerHeight - reserveBottom - reserveTop;
-    const availW = Math.min(window.innerWidth - 32, 340);
+    const availW = window.innerWidth - 20 - hudWidth - opponentsWidth - gaps;
     const byHeight = Math.floor(availH / TetrisCore.VISIBLE_ROWS);
     const byWidth = Math.floor(availW / TetrisCore.COLS);
     return Math.max(12, Math.min(byHeight, byWidth, 30));
@@ -157,6 +162,7 @@ class InputController {
     CELL = computeCellSize();
     mainCanvas.width = CELL * TetrisCore.COLS;
     mainCanvas.height = CELL * TetrisCore.VISIBLE_ROWS;
+    el('peripherals').style.setProperty('--board-h', mainCanvas.height + 'px');
   }
 
   // ---- solo ----
@@ -193,7 +199,7 @@ class InputController {
       room = r;
       el('lobby-code').textContent = code;
       el('btn-start-game').hidden = false;
-      el('start-delay-field').hidden = false;
+      el('match-duration-field').hidden = false;
       el('waiting-hint').hidden = true;
       renderRoster(r._rosterArray());
       showScreen('lobby');
@@ -214,7 +220,7 @@ class InputController {
       room = r;
       el('lobby-code').textContent = room.code;
       el('btn-start-game').hidden = true;
-      el('start-delay-field').hidden = true;
+      el('match-duration-field').hidden = true;
       el('waiting-hint').hidden = false;
       renderRoster([...room.players.entries()].map(([id, p]) => ({ id, ...p })));
       showScreen('lobby');
@@ -229,10 +235,11 @@ class InputController {
   };
 
   el('btn-leave-lobby').onclick = () => { cleanupRoom(); showScreen('menu'); };
+  let lastMatchDurationMs = 120000;
   el('btn-start-game').onclick = () => {
     if (!room) return;
-    const delayMs = parseInt(el('start-delay').value, 10) || 3000;
-    room.startGame(delayMs);
+    lastMatchDurationMs = parseInt(el('match-duration').value, 10) || 120000;
+    room.startGame(lastMatchDurationMs);
   };
 
   function wireRoomEvents(r) {
@@ -281,11 +288,20 @@ class InputController {
   function onNetworkStart(detail) {
     mode = 'online';
     localDead = false;
+    matchEndAt = detail.startAt + (detail.durationMs || 0);
+    el('stat-time-row').hidden = !detail.durationMs;
     el('local-status-overlay').hidden = true;
     setupPeripherals();
     showScreen('game');
     const delay = Math.max(0, detail.startAt - Date.now());
     runCountdown(delay, () => beginGame(detail.seed));
+  }
+
+  function formatClock(ms) {
+    const total = Math.max(0, Math.ceil(ms / 1000));
+    const m = Math.floor(total / 60);
+    const s = total % 60;
+    return m + ':' + String(s).padStart(2, '0');
   }
 
   function runCountdown(ms, cb) {
@@ -310,7 +326,7 @@ class InputController {
       const box = document.createElement('div');
       box.className = 'mini-board';
       const canvas = document.createElement('canvas');
-      canvas.width = 60; canvas.height = 120;
+      canvas.width = 50; canvas.height = 100;
       const nameEl = document.createElement('div');
       nameEl.className = 'mini-name';
       nameEl.textContent = p.name;
@@ -327,7 +343,7 @@ class InputController {
     const m = miniEls.get(detail.id);
     if (!m || !detail.grid) return;
     m.scoreEl.textContent = detail.score;
-    TetrisRender.drawBoard(m.ctx, detail.grid, 6, { flat: true, skipGridLines: true });
+    TetrisRender.drawBoard(m.ctx, detail.grid, 5, { flat: true, skipGridLines: true });
     m.box.classList.toggle('dead', !detail.alive);
   }
 
@@ -380,12 +396,13 @@ class InputController {
         sendStateTimer += dt;
         if (sendStateTimer >= 150) { sendStateTimer = 0; room.sendState(game.getState()); }
       }
-      if (!game.alive) { onLocalGameOver(); return; }
+      if (!game.alive) { onLocalGameOver('topout'); return; }
+      if (mode === 'online' && matchEndAt && Date.now() >= matchEndAt) { onLocalGameOver('timeup'); return; }
     }
     rafId = requestAnimationFrame(loop);
   }
 
-  function onLocalGameOver() {
+  function onLocalGameOver(reason) {
     render();
     if (mode === 'solo') {
       stopLoop();
@@ -398,7 +415,10 @@ class InputController {
       stopLoop();
       localDead = true;
       room.sendTopout(game.score);
-      el('local-status-text').textContent = `You topped out — score ${game.score}. Waiting for the round to end…`;
+      const msg = reason === 'timeup'
+        ? `Time's up — final score ${game.score}. Waiting for the round to end…`
+        : `You topped out — score ${game.score}. Waiting for the round to end…`;
+      el('local-status-text').textContent = msg;
       el('local-status-overlay').hidden = false;
     }
   }
@@ -413,6 +433,9 @@ class InputController {
     el('stat-score').textContent = state.score;
     el('stat-lines').textContent = state.lines;
     el('stat-level').textContent = state.level;
+    if (mode === 'online' && matchEndAt) {
+      el('stat-time').textContent = formatClock(matchEndAt - Date.now());
+    }
     TetrisRender.drawPiecePreview(holdCanvas, state.hold, 18);
     state.next.forEach((t, i) => TetrisRender.drawPiecePreview(nextCanvases[i], t, 18));
   }
@@ -441,8 +464,9 @@ class InputController {
     results.forEach((r, i) => {
       const tr = document.createElement('tr');
       if (i === 0) tr.classList.add('winner');
+      const youTag = room && r.id === room.selfId ? ' <span class="you-tag">(you)</span>' : '';
       tr.innerHTML = `<td class="rank">${i === 0 ? '\u{1F3C6}' : '#' + (i + 1)}</td>` +
-        `<td>${escapeHtml(r.name)}</td><td class="score-col">${r.score}</td>`;
+        `<td>${escapeHtml(r.name)}${youTag}</td><td class="score-col">${r.score}</td>`;
       tbody.appendChild(tr);
     });
     el('btn-play-again').hidden = !(room && room.isHost);
@@ -454,7 +478,7 @@ class InputController {
       showScreen('game');
       beginGame(Math.floor(Math.random() * 2 ** 31));
     } else if (room && room.isHost) {
-      room.startGame();
+      room.startGame(lastMatchDurationMs);
     }
   };
 
@@ -465,35 +489,79 @@ class InputController {
     showScreen('menu');
   };
 
-  // ---- touch controls (phones / tablets) ----
-  function bindHoldButton(elem, action) {
-    let timeoutId = null;
-    let intervalId = null;
-    const fire = () => { if (game && !paused) action(); };
-    const start = (e) => {
-      e.preventDefault();
-      fire();
-      timeoutId = setTimeout(() => { intervalId = setInterval(fire, 42); }, 170);
+  // ---- touch controls (phones / tablets): swipe the board to move/soft-drop,
+  // tap it to rotate, tap the Hold panel to hold. DROP stays a real button. ----
+  function bindBoardGestures(canvas) {
+    let active = false;
+    let moved = false;
+    let startX = 0, startY = 0, startTime = 0;
+    let startPieceX = 0;
+    let dropSteps = 0;
+
+    const onDown = (e) => {
+      if (!game || paused || !game.alive) return;
+      active = true;
+      moved = false;
+      startX = e.clientX;
+      startY = e.clientY;
+      startTime = Date.now();
+      startPieceX = game.active.x;
+      dropSteps = 0;
+      canvas.setPointerCapture(e.pointerId);
     };
-    const stop = () => { clearTimeout(timeoutId); clearInterval(intervalId); };
-    elem.addEventListener('pointerdown', start);
-    elem.addEventListener('pointerup', stop);
-    elem.addEventListener('pointercancel', stop);
-    elem.addEventListener('pointerleave', stop);
+
+    const onMove = (e) => {
+      if (!active || !game || paused || !game.alive) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (Math.abs(dx) > 6 || Math.abs(dy) > 6) moved = true;
+
+      const targetCol = startPieceX + Math.round(dx / CELL);
+      let guard = 0;
+      while (game.active.x < targetCol && guard++ < 10) {
+        const before = game.active.x;
+        game.moveRight();
+        if (game.active.x === before) break;
+      }
+      guard = 0;
+      while (game.active.x > targetCol && guard++ < 10) {
+        const before = game.active.x;
+        game.moveLeft();
+        if (game.active.x === before) break;
+      }
+
+      const targetDrop = Math.max(0, Math.round(dy / CELL));
+      guard = 0;
+      while (dropSteps < targetDrop && guard++ < 20) {
+        const beforeY = game.active.y;
+        game.softDrop();
+        dropSteps++;
+        if (game.active.y === beforeY) break;
+      }
+    };
+
+    const onUp = () => {
+      if (!active) return;
+      active = false;
+      const dt = Date.now() - startTime;
+      if (!moved && dt < 300 && game && !paused && game.alive) game.rotateCW();
+    };
+
+    canvas.addEventListener('pointerdown', onDown);
+    canvas.addEventListener('pointermove', onMove);
+    canvas.addEventListener('pointerup', onUp);
+    canvas.addEventListener('pointercancel', onUp);
   }
 
-  function bindTapButton(elem, action) {
-    elem.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      if (game && !paused) action();
-    });
-  }
+  bindBoardGestures(mainCanvas);
 
-  bindHoldButton(el('tc-left'), () => game.moveLeft());
-  bindHoldButton(el('tc-right'), () => game.moveRight());
-  bindHoldButton(el('tc-down'), () => game.softDrop());
-  bindTapButton(el('tc-rotate-cw'), () => game.rotateCW());
-  bindTapButton(el('tc-rotate-ccw'), () => game.rotateCCW());
-  bindTapButton(el('tc-harddrop'), () => game.hardDrop());
-  bindTapButton(el('tc-hold'), () => game.holdPiece());
+  el('hold-box').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (game && !paused) game.holdPiece();
+  });
+
+  el('tc-harddrop').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (game && !paused) game.hardDrop();
+  });
 })();

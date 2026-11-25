@@ -167,7 +167,7 @@ class TetrisRoom extends EventTarget {
         this._emit('roster', { players: msg.roster });
         break;
       case 'start':
-        this._emit('start', { seed: msg.seed, startAt: msg.startAt });
+        this._emit('start', { seed: msg.seed, startAt: msg.startAt, durationMs: msg.durationMs });
         break;
       case 'peer-state':
         { const p = this.players.get(msg.id); if (p) { p.score = msg.score; p.lines = msg.lines; p.level = msg.level; p.alive = msg.alive; } }
@@ -184,14 +184,14 @@ class TetrisRoom extends EventTarget {
     }
   }
 
-  startGame(delayMs = 3000) {
+  startGame(durationMs = 120000) {
     if (!this.isHost) return;
     const seed = Math.floor(Math.random() * 2 ** 31);
-    const startAt = Date.now() + delayMs;
+    const startAt = Date.now() + 3000;
     this.gameEnded = false;
     for (const p of this.players.values()) { p.alive = true; p.score = 0; p.lines = 0; p.level = 1; }
-    for (const [, c] of this.conns) if (c.open) c.send({ type: 'start', seed, startAt });
-    this._emit('start', { seed, startAt });
+    for (const [, c] of this.conns) if (c.open) c.send({ type: 'start', seed, startAt, durationMs });
+    this._emit('start', { seed, startAt, durationMs });
   }
 
   sendState(state) {
@@ -218,10 +218,8 @@ class TetrisRoom extends EventTarget {
 
   _checkGameOver() {
     if (!this.isHost || this.gameEnded) return;
-    const total = this.players.size;
     const aliveCount = [...this.players.values()].filter((p) => p.alive).length;
-    const shouldEnd = aliveCount === 0 || (total >= 2 && aliveCount <= 1);
-    if (shouldEnd) {
+    if (aliveCount === 0) {
       this.gameEnded = true;
       const results = [...this.players.entries()]
         .map(([id, p]) => ({ id, name: p.name, score: p.score, alive: p.alive }))
