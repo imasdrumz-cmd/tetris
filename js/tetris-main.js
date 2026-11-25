@@ -169,7 +169,21 @@ class InputController {
   };
 
   // ---- online: create / join ----
-  el('btn-create-room').onclick = async () => {
+  function withBusy(button, busyText, fn) {
+    return async (...args) => {
+      const original = button.textContent;
+      button.disabled = true;
+      button.textContent = busyText;
+      try {
+        await fn(...args);
+      } finally {
+        button.disabled = false;
+        button.textContent = original;
+      }
+    };
+  }
+
+  el('btn-create-room').onclick = withBusy(el('btn-create-room'), 'Connecting…', async () => {
     const name = playerName();
     setOnlineError('');
     const r = new TetrisNetwork.TetrisRoom();
@@ -179,15 +193,16 @@ class InputController {
       room = r;
       el('lobby-code').textContent = code;
       el('btn-start-game').hidden = false;
+      el('start-delay-field').hidden = false;
       el('waiting-hint').hidden = true;
       renderRoster(r._rosterArray());
       showScreen('lobby');
     } catch (err) {
       setOnlineError(err.message || 'Could not create room.');
     }
-  };
+  });
 
-  el('btn-join-room').onclick = async () => {
+  el('btn-join-room').onclick = withBusy(el('btn-join-room'), 'Connecting…', async () => {
     const name = playerName();
     const code = el('input-code').value.trim();
     if (!code) { setOnlineError('Enter a room code.'); return; }
@@ -199,13 +214,14 @@ class InputController {
       room = r;
       el('lobby-code').textContent = room.code;
       el('btn-start-game').hidden = true;
+      el('start-delay-field').hidden = true;
       el('waiting-hint').hidden = false;
       renderRoster([...room.players.entries()].map(([id, p]) => ({ id, ...p })));
       showScreen('lobby');
     } catch (err) {
       setOnlineError(err.message || 'Could not join room.');
     }
-  };
+  });
 
   el('btn-copy-code').onclick = () => {
     const code = el('lobby-code').textContent;
@@ -213,7 +229,11 @@ class InputController {
   };
 
   el('btn-leave-lobby').onclick = () => { cleanupRoom(); showScreen('menu'); };
-  el('btn-start-game').onclick = () => { if (room) room.startGame(); };
+  el('btn-start-game').onclick = () => {
+    if (!room) return;
+    const delayMs = parseInt(el('start-delay').value, 10) || 3000;
+    room.startGame(delayMs);
+  };
 
   function wireRoomEvents(r) {
     r.addEventListener('roster', (e) => renderRoster(e.detail.players));
