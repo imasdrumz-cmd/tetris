@@ -97,6 +97,15 @@
       </div>
       <p class="hint">Share this code so others can join.</p>
       <ul class="roster-list" id="roster-list"></ul>
+      <label class="field start-delay-field" id="start-delay-field" hidden>
+        <span>Countdown before start</span>
+        <select id="start-delay">
+          <option value="3000">3 seconds</option>
+          <option value="5000">5 seconds</option>
+          <option value="10000">10 seconds</option>
+          <option value="30000">30 seconds</option>
+        </select>
+      </label>
       <button class="btn btn-primary" id="btn-start-game" hidden>Start Game</button>
       <p class="hint" id="waiting-hint">Waiting for the host to start&hellip;</p>
       <button class="link-btn" id="btn-leave-lobby">Leave Room</button>
@@ -176,4 +185,3 @@
 <script src="js/tetris-main.js"></script>
 </body>
 </html>
-
