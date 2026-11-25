@@ -1,0 +1,198 @@
+/* Poker-specific styling. Menu/lobby screens reuse tetris.css's design
+   system (same .screen/.menu-card/.btn/.field/.roster-list) so the two
+   games feel like one product; everything below is new. */
+
+.poker-brand-blocks { gap: 10px; }
+.poker-brand-blocks .suit {
+  width: 26px; height: 26px; border-radius: 6px;
+  background: rgba(255,255,255,0.06);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+}
+.poker-brand-blocks .suit.red { color: #cc7a7a; }
+.poker-brand-blocks .suit.black { color: #e6e8ee; }
+
+.starting-chips-field { margin-top: 4px; }
+
+/* ---- table screen ---- */
+#screen-table.active { display: block; }
+
+.table-screen-inner {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 14px 10px 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 100vh;
+}
+
+.table-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  padding: 0 4px;
+}
+.pot-readout { color: var(--accent); font-weight: 700; }
+
+.felt-wrap { padding: 10px 0; }
+.felt {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 10 / 8;
+  background: radial-gradient(ellipse at center, #1f6b4d 0%, #154a36 70%, #0f3828 100%);
+  border: 10px solid #2a1c12;
+  border-radius: 50% / 40%;
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.5), 0 14px 30px rgba(0,0,0,0.5);
+}
+
+.community-row {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -60%);
+  display: flex;
+  gap: 4px;
+}
+
+.pot-chip-display {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, 40%);
+  font-size: 0.7rem;
+  color: #d9e3dc;
+  background: rgba(0,0,0,0.35);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-weight: 700;
+}
+
+.seats { position: absolute; inset: 0; }
+.seat {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 78px;
+  transform: translate(-50%, -50%);
+}
+.seat-pos-0 { top: 94%; left: 50%; }
+.seat-pos-1 { top: 74%; left: 95%; }
+.seat-pos-2 { top: 26%; left: 88%; }
+.seat-pos-3 { top: 4%; left: 50%; }
+.seat-pos-4 { top: 26%; left: 12%; }
+.seat-pos-5 { top: 74%; left: 5%; }
+
+.seat-card {
+  background: rgba(10,12,16,0.78);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 5px 7px;
+  text-align: center;
+  min-width: 68px;
+}
+.seat.folded .seat-card { opacity: 0.4; }
+.seat.turn .seat-card { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(111,182,168,0.35); }
+.seat.busted .seat-card { opacity: 0.25; }
+.seat.dealer .seat-card { position: relative; }
+.dealer-chip {
+  position: absolute; top: -8px; right: -6px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: #e8e2d0; color: #1a1a1a;
+  font-size: 0.6rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(0,0,0,0.3);
+}
+.seat-name { font-size: 0.66rem; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 66px; margin: 0 auto; }
+.seat-chips { font-size: 0.72rem; font-weight: 700; color: var(--text); }
+.seat-cards { display: flex; gap: 2px; justify-content: center; margin-top: 3px; }
+
+.seat-bet {
+  margin-top: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 999px;
+  padding: 2px 7px;
+  font-size: 0.64rem;
+  color: #f0e6c8;
+}
+.seat-bet .chip-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 1.5px rgba(0,0,0,0.4), inset 0 0 0 1.5px rgba(255,255,255,0.3);
+  display: inline-block;
+}
+
+/* ---- playing cards ---- */
+.pcard {
+  width: 30px; height: 42px;
+  border-radius: 5px;
+  background: #f4f1e8;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 0.78rem; font-weight: 700; line-height: 1;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+  flex-shrink: 0;
+}
+.pcard.red { color: #b03a3a; }
+.pcard.black { color: #1c1c1c; }
+.pcard .suit-sym { font-size: 0.85rem; margin-top: 1px; }
+.pcard.back {
+  background: repeating-linear-gradient(45deg, #335d8f, #335d8f 4px, #2a4d78 4px, #2a4d78 8px);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+.pcard.placeholder { background: rgba(255,255,255,0.06); box-shadow: none; }
+
+.my-cards .pcard { width: 52px; height: 74px; font-size: 1.1rem; }
+.my-cards .pcard .suit-sym { font-size: 1.3rem; }
+
+/* ---- my area / action bar ---- */
+.my-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 4px;
+}
+.my-cards { display: flex; gap: 6px; }
+.my-info { display: flex; flex-direction: column; align-items: flex-start; }
+.my-name { font-size: 0.8rem; color: var(--text-dim); }
+.my-chips { font-size: 1.1rem; font-weight: 800; color: var(--accent); }
+
+.hand-banner {
+  text-align: center;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.86rem;
+}
+.hand-banner strong { color: var(--accent); }
+
+.action-bar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+  background: rgba(11,13,18,0.92);
+  backdrop-filter: blur(14px);
+  border-top: 1px solid var(--panel-border);
+  z-index: 20;
+}
+.raise-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.raise-row input[type="range"] { flex: 1; accent-color: var(--accent); }
+.raise-amount { font-weight: 700; color: var(--accent); min-width: 54px; text-align: right; font-variant-numeric: tabular-nums; }
+.action-buttons { display: flex; gap: 8px; }
+.action-buttons .btn { flex: 1; padding: 13px 0; }
+
+.next-hand-btn {
+  position: fixed;
+  left: 14px; right: 14px; bottom: calc(14px + env(safe-area-inset-bottom));
+  z-index: 21;
+}
+
+@media (min-width: 560px) {
+  .table-screen-inner { padding-bottom: 120px; }
+}

@@ -1,0 +1,74 @@
+:root {
+  --bg: #0b0d12;
+  --panel: rgba(255,255,255,0.035);
+  --panel-border: rgba(255,255,255,0.08);
+  --text: #e6e8ee;
+  --text-dim: #9aa0ad;
+  --accent: #6fb6a8;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0;
+  background: radial-gradient(circle at 50% 0%, #15181f 0%, var(--bg) 60%);
+  color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
+}
+
+#app {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.picker-card {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  backdrop-filter: blur(16px);
+  border-radius: 16px;
+  padding: 36px 28px;
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+}
+
+h1 { margin: 0 0 6px; font-size: 1.8rem; font-weight: 800; letter-spacing: 0.04em; }
+.sub { color: var(--text-dim); margin: 0 0 28px; font-size: 0.9rem; }
+
+.game-grid { display: flex; flex-direction: column; gap: 14px; }
+
+.game-tile {
+  display: block;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  padding: 20px;
+  text-decoration: none;
+  color: var(--text);
+  text-align: left;
+  transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.game-tile:hover { background: rgba(255,255,255,0.07); }
+.game-tile:active { transform: scale(0.98); }
+.game-tile.tetris:hover { border-color: rgba(127,176,201,0.5); }
+.game-tile.poker:hover { border-color: rgba(111,182,168,0.5); }
+
+.tile-icon { display: flex; gap: 6px; margin-bottom: 12px; }
+.tile-icon span { width: 20px; height: 20px; border-radius: 5px; display: inline-block; }
+.poker-icon .card {
+  width: 26px; height: 34px; border-radius: 5px; background: #1b1e26;
+  border: 1px solid rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; font-weight: 700;
+}
+.poker-icon .card.red { color: #d16a6a; }
+.poker-icon .card.black { color: #d8dbe2; }
+
+.game-tile h2 { margin: 0 0 6px; font-size: 1.15rem; font-weight: 700; }
+.game-tile p { margin: 0; color: var(--text-dim); font-size: 0.84rem; line-height: 1.4; }
