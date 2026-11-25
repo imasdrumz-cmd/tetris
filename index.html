@@ -97,13 +97,14 @@
       </div>
       <p class="hint">Share this code so others can join.</p>
       <ul class="roster-list" id="roster-list"></ul>
-      <label class="field start-delay-field" id="start-delay-field" hidden>
-        <span>Countdown before start</span>
-        <select id="start-delay">
-          <option value="3000">3 seconds</option>
-          <option value="5000">5 seconds</option>
-          <option value="10000">10 seconds</option>
-          <option value="30000">30 seconds</option>
+      <label class="field match-duration-field" id="match-duration-field" hidden>
+        <span>Match length</span>
+        <select id="match-duration">
+          <option value="60000">1 minute</option>
+          <option value="120000" selected>2 minutes</option>
+          <option value="180000">3 minutes</option>
+          <option value="300000">5 minutes</option>
+          <option value="600000">10 minutes</option>
         </select>
       </label>
       <button class="btn btn-primary" id="btn-start-game" hidden>Start Game</button>
@@ -114,20 +115,8 @@
 
   <!-- GAME -->
   <section class="screen" id="screen-game">
-    <div class="peripherals" id="peripherals"></div>
-
     <div class="game-layout">
-      <aside class="side-panel left">
-        <div class="box">
-          <h3>Hold</h3>
-          <canvas id="canvas-hold" width="96" height="72"></canvas>
-        </div>
-        <div class="box stats">
-          <div><span>Score</span><strong id="stat-score">0</strong></div>
-          <div><span>Lines</span><strong id="stat-lines">0</strong></div>
-          <div><span>Level</span><strong id="stat-level">1</strong></div>
-        </div>
-      </aside>
+      <aside class="side-panel opponents" id="peripherals"></aside>
 
       <div class="board-wrap">
         <canvas id="canvas-main" width="300" height="600"></canvas>
@@ -136,7 +125,17 @@
         <div class="pause-overlay" id="local-status-overlay" hidden><span id="local-status-text"></span></div>
       </div>
 
-      <aside class="side-panel right">
+      <aside class="side-panel hud">
+        <div class="box hold-box" id="hold-box">
+          <h3>Hold</h3>
+          <canvas id="canvas-hold" width="96" height="72"></canvas>
+        </div>
+        <div class="box stats">
+          <div><span>Score</span><strong id="stat-score">0</strong></div>
+          <div><span>Lines</span><strong id="stat-lines">0</strong></div>
+          <div><span>Level</span><strong id="stat-level">1</strong></div>
+          <div id="stat-time-row" hidden><span>Time</span><strong id="stat-time">-</strong></div>
+        </div>
         <div class="box">
           <h3>Next</h3>
           <canvas id="canvas-next-0" width="96" height="72"></canvas>
@@ -147,12 +146,6 @@
     </div>
 
     <div class="touch-controls" id="touch-controls">
-      <button class="tc-btn tc-hold" id="tc-hold" aria-label="Hold piece">Hold</button>
-      <button class="tc-btn" id="tc-rotate-ccw" aria-label="Rotate left">&#10226;</button>
-      <button class="tc-btn" id="tc-rotate-cw" aria-label="Rotate right">&#10227;</button>
-      <button class="tc-btn" id="tc-left" aria-label="Move left">&larr;</button>
-      <button class="tc-btn" id="tc-down" aria-label="Soft drop">&darr;</button>
-      <button class="tc-btn" id="tc-right" aria-label="Move right">&rarr;</button>
       <button class="tc-btn tc-harddrop" id="tc-harddrop" aria-label="Hard drop">DROP</button>
     </div>
   </section>
