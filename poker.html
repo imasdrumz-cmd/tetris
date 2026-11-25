@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Poker</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='14' fill='%231d6b4f'/%3E%3Ctext x='50' y='68' font-size='54' text-anchor='middle' fill='white'%3E%E2%99%A0%3C/text%3E%3C/svg%3E">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Poker">
+<meta name="theme-color" content="#0b0d12">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/tetris.css">
+<link rel="stylesheet" href="css/poker.css?v=1">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- MENU -->
+  <section class="screen active" id="screen-menu">
+    <div class="menu-card">
+      <div class="brand">
+        <div class="brand-blocks poker-brand-blocks">
+          <span class="suit red">&hearts;</span><span class="suit black">&spades;</span>
+          <span class="suit red">&diams;</span><span class="suit black">&clubs;</span>
+        </div>
+        <h1>POKER</h1>
+      </div>
+      <p class="high-score">Texas Hold&rsquo;em &mdash; online only, with friends.</p>
+      <div class="menu-actions">
+        <button class="btn btn-primary" id="btn-online">Play Online</button>
+      </div>
+      <a class="link-btn" href="home.html">Back to Games</a>
+    </div>
+  </section>
+
+  <!-- ONLINE MENU -->
+  <section class="screen" id="screen-online-menu">
+    <div class="menu-card">
+      <h2>Play Online</h2>
+      <label class="field">
+        <span>Your name</span>
+        <input type="text" id="input-name" maxlength="16" placeholder="Player">
+      </label>
+
+      <div class="online-tabs">
+        <button class="tab-btn active" data-tab="create">Create Room</button>
+        <button class="tab-btn" data-tab="join">Join Room</button>
+      </div>
+
+      <div class="tab-pane active" data-pane="create">
+        <p class="hint">Start a private table and share the code with friends.</p>
+        <button class="btn btn-primary" id="btn-create-room">Create Room</button>
+      </div>
+
+      <div class="tab-pane" data-pane="join">
+        <label class="field">
+          <span>Room code</span>
+          <input type="text" id="input-code" maxlength="5" placeholder="ABCDE" style="text-transform:uppercase">
+        </label>
+        <button class="btn btn-primary" id="btn-join-room">Join Room</button>
+      </div>
+
+      <p class="error-text" id="online-error"></p>
+      <button class="link-btn" id="btn-back-to-menu">Back</button>
+    </div>
+  </section>
+
+  <!-- LOBBY -->
+  <section class="screen" id="screen-lobby">
+    <div class="menu-card">
+      <h2>Table</h2>
+      <div class="room-code-box">
+        <span class="room-code" id="lobby-code">-----</span>
+        <button class="btn btn-small" id="btn-copy-code">Copy</button>
+      </div>
+      <p class="hint">Share this code so others can join.</p>
+      <ul class="roster-list" id="roster-list"></ul>
+      <label class="field starting-chips-field" id="starting-chips-field" hidden>
+        <span>Starting chips per player</span>
+        <select id="starting-chips">
+          <option value="200">200</option>
+          <option value="500" selected>500</option>
+          <option value="1000">1,000</option>
+          <option value="2000">2,000</option>
+          <option value="5000">5,000</option>
+        </select>
+      </label>
+      <button class="btn btn-primary" id="btn-start-game" hidden>Start Game</button>
+      <p class="hint" id="waiting-hint">Waiting for the host to start&hellip;</p>
+      <button class="link-btn" id="btn-leave-lobby">Leave Table</button>
+    </div>
+  </section>
+
+  <!-- TABLE -->
+  <section class="screen" id="screen-table">
+    <div class="table-screen-inner">
+      <div class="table-topbar">
+        <div class="blinds-readout" id="blinds-readout">Blinds -</div>
+        <div class="pot-readout" id="pot-readout">Pot: 0</div>
+      </div>
+
+      <div class="felt-wrap">
+        <div class="felt" id="felt">
+          <div class="community-row" id="community-row"></div>
+          <div class="seats" id="seats"></div>
+        </div>
+      </div>
+
+      <div class="hand-banner" id="hand-banner" hidden></div>
+
+      <div class="my-area">
+        <div class="my-cards" id="my-cards"></div>
+        <div class="my-info">
+          <span class="my-name" id="my-name">You</span>
+          <span class="my-chips" id="my-chips">0</span>
+        </div>
+      </div>
+
+      <div class="action-bar" id="action-bar" hidden>
+        <div class="raise-row" id="raise-row" hidden>
+          <input type="range" id="raise-slider" min="0" max="0" step="1" value="0">
+          <span class="raise-amount" id="raise-amount">0</span>
+        </div>
+        <div class="action-buttons">
+          <button class="btn btn-ghost" id="btn-fold">Fold</button>
+          <button class="btn btn-ghost" id="btn-check" hidden>Check</button>
+          <button class="btn btn-ghost" id="btn-call" hidden>Call</button>
+          <button class="btn btn-primary" id="btn-raise" hidden>Raise</button>
+        </div>
+      </div>
+
+      <button class="btn btn-primary next-hand-btn" id="btn-next-hand" hidden>Deal Next Hand</button>
+    </div>
+  </section>
+
+  <!-- GAME OVER -->
+  <section class="screen" id="screen-gameover">
+    <div class="menu-card">
+      <h2>Game Over</h2>
+      <table class="results-table" id="results-table">
+        <tbody></tbody>
+      </table>
+      <div class="menu-actions">
+        <a class="btn btn-ghost" href="home.html">Back to Games</a>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="js/poker-engine.js?v=1"></script>
+<script src="js/poker-network.js?v=1"></script>
+<script src="js/poker-main.js?v=1"></script>
+</body>
+</html>
