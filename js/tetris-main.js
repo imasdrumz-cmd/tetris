@@ -168,12 +168,16 @@ class InputController {
   }
 
   // ---- solo ----
-  el('btn-solo').onclick = () => {
+  el('btn-solo').onclick = () => showScreen('solo-setup');
+  el('btn-solo-back').onclick = () => showScreen('menu');
+  let lastSoloDurationMs = 0;
+  el('btn-solo-start').onclick = () => {
     mode = 'solo';
     room = null;
     el('peripherals').innerHTML = '';
+    lastSoloDurationMs = parseInt(el('solo-duration').value, 10) || 0;
     showScreen('game');
-    beginGame(Math.floor(Math.random() * 2 ** 31));
+    beginGame(Math.floor(Math.random() * 2 ** 31), lastSoloDurationMs);
   };
 
   // ---- online: create / join ----
@@ -372,7 +376,7 @@ class InputController {
   }
 
   // ---- the actual game loop ----
-  function beginGame(seed) {
+  function beginGame(seed, soloDurationMs) {
     applyCellSize();
     game = new TetrisCore.TetrisGame(seed);
     if (input) input.destroy();
@@ -383,6 +387,10 @@ class InputController {
     el('pause-overlay').hidden = true;
     el('local-status-overlay').hidden = true;
     sendStateTimer = 0;
+    if (mode === 'solo') {
+      matchEndAt = soloDurationMs ? Date.now() + soloDurationMs : null;
+      el('match-timer').hidden = !matchEndAt;
+    }
     lastTs = performance.now();
     if (rafId) cancelAnimationFrame(rafId);
     rafId = requestAnimationFrame(loop);
@@ -410,7 +418,7 @@ class InputController {
         if (sendStateTimer >= 150) { sendStateTimer = 0; room.sendState(game.getState()); }
       }
       if (!game.alive) { onLocalGameOver('topout'); return; }
-      if (mode === 'online' && matchEndAt && Date.now() >= matchEndAt) { onLocalGameOver('timeup'); return; }
+      if (matchEndAt && Date.now() >= matchEndAt) { onLocalGameOver('timeup'); return; }
     }
     rafId = requestAnimationFrame(loop);
   }
@@ -423,7 +431,7 @@ class InputController {
       const best = getHighScore();
       const isNew = score > best;
       if (isNew) setHighScore(score);
-      showSoloGameOver(score, isNew);
+      showSoloGameOver(score, isNew, reason);
     } else if (mode === 'online' && room) {
       stopLoop();
       localDead = true;
@@ -446,7 +454,7 @@ class InputController {
     el('stat-score').textContent = state.score;
     el('stat-lines').textContent = state.lines;
     el('stat-level').textContent = state.level;
-    if (mode === 'online' && matchEndAt) {
+    if (matchEndAt) {
       el('match-timer').textContent = formatClock(matchEndAt - Date.now());
     }
     TetrisRender.drawPiecePreview(holdCanvas, state.hold, 18);
@@ -454,8 +462,8 @@ class InputController {
   }
 
   // ---- game over screens ----
-  function showSoloGameOver(score, isNew) {
-    el('gameover-title').textContent = 'Game Over';
+  function showSoloGameOver(score, isNew, reason) {
+    el('gameover-title').textContent = reason === 'timeup' ? "Time's Up!" : 'Game Over';
     el('results-table').hidden = true;
     el('new-high-badge').hidden = !isNew;
     el('solo-result').hidden = false;
@@ -489,7 +497,7 @@ class InputController {
   el('btn-play-again').onclick = () => {
     if (mode === 'solo') {
       showScreen('game');
-      beginGame(Math.floor(Math.random() * 2 ** 31));
+      beginGame(Math.floor(Math.random() * 2 ** 31), lastSoloDurationMs);
     } else if (room && room.isHost) {
       room.startGame(lastMatchDurationMs);
     }
