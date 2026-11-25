@@ -207,8 +207,8 @@ html, body {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  gap: 10px;
-  padding: 16px 10px;
+  gap: 8px;
+  padding: 14px 8px;
 }
 
 .board-wrap { position: relative; touch-action: none; }
@@ -221,12 +221,12 @@ html, body {
   touch-action: none;
 }
 
-.side-panel { display: flex; flex-direction: column; gap: 8px; width: 92px; flex-shrink: 0; }
+.side-panel { display: flex; flex-direction: column; gap: 8px; width: 88px; flex-shrink: 0; }
 .side-panel.opponents {
-  width: 64px;
+  width: 46px;
   max-height: var(--board-h, 600px);
   overflow-y: auto;
-  gap: 6px;
+  gap: 5px;
 }
 .side-panel.opponents:empty { display: none; }
 
@@ -245,6 +245,21 @@ html, body {
 .stats div { display: flex; justify-content: space-between; padding: 3px 0; font-size: 0.76rem; gap: 6px; }
 .stats span { color: var(--text-dim); }
 .stats strong { color: var(--text); }
+
+.match-timer {
+  position: absolute;
+  top: 6px; right: 6px;
+  background: rgba(11,13,18,0.82);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  z-index: 5;
+  pointer-events: none;
+}
 
 .countdown {
   position: absolute; inset: 0;
@@ -268,7 +283,7 @@ html, body {
   background: var(--panel);
   border: 1px solid var(--panel-border);
   border-radius: 8px;
-  padding: 5px;
+  padding: 3px;
   text-align: center;
   opacity: 0.85;
   transition: opacity 0.2s ease;
@@ -295,8 +310,8 @@ html, body {
 .touch-controls { display: none; }
 
 @media (max-width: 400px) {
-  .side-panel { width: 78px; }
-  .side-panel.opponents { width: 54px; }
+  .side-panel { width: 76px; }
+  .side-panel.opponents { width: 38px; }
 }
 
 @media (pointer: coarse) {
