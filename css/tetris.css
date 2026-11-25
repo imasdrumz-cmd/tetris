@@ -201,38 +201,48 @@ html, body {
 .roster-list .you { color: var(--text-dim); font-size: 0.78rem; margin-left: auto; }
 #waiting-hint { margin-top: 4px; }
 
-/* Game layout */
+/* Game layout — opponents (left) | board (center, dominant) | hud (right) */
 #screen-game.active { display: block; }
 .game-layout {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  gap: 20px;
-  padding: 24px 16px;
+  gap: 10px;
+  padding: 16px 10px;
 }
 
-.board-wrap { position: relative; }
+.board-wrap { position: relative; touch-action: none; }
 #canvas-main {
   background: var(--bg-2);
   border: 1px solid var(--panel-border);
   border-radius: 10px;
   box-shadow: 0 20px 50px rgba(0,0,0,0.4);
   display: block;
+  touch-action: none;
 }
 
-.side-panel { display: flex; flex-direction: column; gap: 14px; width: 124px; }
+.side-panel { display: flex; flex-direction: column; gap: 8px; width: 92px; flex-shrink: 0; }
+.side-panel.opponents {
+  width: 64px;
+  max-height: var(--board-h, 600px);
+  overflow-y: auto;
+  gap: 6px;
+}
+.side-panel.opponents:empty { display: none; }
+
 .box {
   background: var(--panel);
   border: 1px solid var(--panel-border);
   border-radius: 10px;
-  padding: 10px;
+  padding: 8px;
   text-align: center;
 }
-.box h3 { margin: 0 0 8px; font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+.box h3 { margin: 0 0 6px; font-size: 0.66rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; }
 .box canvas { display: block; margin: 0 auto 4px; background: rgba(255,255,255,0.02); border-radius: 6px; max-width: 100%; height: auto; }
+.hold-box { cursor: pointer; }
 
 .stats { text-align: left; }
-.stats div { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.82rem; }
+.stats div { display: flex; justify-content: space-between; padding: 3px 0; font-size: 0.76rem; gap: 6px; }
 .stats span { color: var(--text-dim); }
 .stats strong { color: var(--text); }
 
@@ -248,30 +258,25 @@ html, body {
   display: flex; align-items: center; justify-content: center;
   background: rgba(11,13,18,0.75);
   border-radius: 10px;
-  font-size: 1.4rem; font-weight: 700; letter-spacing: 0.1em;
+  font-size: 1.1rem; font-weight: 700; letter-spacing: 0.06em;
   color: var(--text-dim);
+  text-align: center;
+  padding: 16px;
 }
 
-.peripherals {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 16px 16px 0;
-}
 .mini-board {
   background: var(--panel);
   border: 1px solid var(--panel-border);
   border-radius: 8px;
-  padding: 6px;
+  padding: 5px;
   text-align: center;
   opacity: 0.85;
   transition: opacity 0.2s ease;
 }
 .mini-board.dead { opacity: 0.35; }
-.mini-board canvas { display: block; background: rgba(0,0,0,0.25); border-radius: 4px; }
-.mini-board .mini-name { font-size: 0.68rem; color: var(--text-dim); margin-top: 4px; max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mini-board .mini-score { font-size: 0.72rem; font-weight: 700; color: var(--text); }
+.mini-board canvas { display: block; margin: 0 auto; background: rgba(0,0,0,0.25); border-radius: 4px; max-width: 100%; height: auto; }
+.mini-board .mini-name { font-size: 0.62rem; color: var(--text-dim); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini-board .mini-score { font-size: 0.68rem; font-weight: 700; color: var(--text); }
 
 /* Game over */
 .results-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
@@ -279,32 +284,27 @@ html, body {
 .results-table tr.winner td { color: var(--accent); font-weight: 700; }
 .results-table .rank { width: 28px; color: var(--text-dim); }
 .results-table .score-col { text-align: right; }
+.results-table .you-tag { color: var(--text-dim); font-size: 0.78rem; font-weight: 400; }
 
 .new-high { color: var(--accent); font-weight: 700; margin: 0 0 10px; }
 .solo-result p { margin: 6px 0; }
 .solo-result strong { color: var(--accent); }
 
-/* Touch controls (phones / tablets) */
+/* Touch controls: swipe the board to move, tap it to rotate, tap Hold to hold.
+   Only a single DROP button is a real button — kept fixed at the bottom. */
 .touch-controls { display: none; }
 
-@media (max-width: 760px) {
-  .game-layout { flex-direction: column; align-items: center; }
-  .side-panel { flex-direction: row; width: auto; }
-  .board-wrap { order: 1; }
-  .side-panel.left { order: 2; }
-  .side-panel.right { order: 3; }
-  .side-panel .box canvas { max-width: 64px; }
-  .mini-board canvas { width: 46px; height: 92px; }
+@media (max-width: 400px) {
+  .side-panel { width: 78px; }
+  .side-panel.opponents { width: 54px; }
 }
 
 @media (pointer: coarse) {
   #app:has(#screen-game.active) { align-items: flex-start; }
-  #screen-game.active { padding-bottom: 200px; }
+  #screen-game.active { padding-bottom: 110px; }
 
   .touch-controls {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    display: block;
     position: fixed;
     left: 0; right: 0; bottom: 0;
     padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
@@ -313,30 +313,24 @@ html, body {
     border-top: 1px solid var(--panel-border);
     z-index: 20;
   }
-  .tc-btn {
+  .tc-harddrop {
+    display: block;
+    width: 100%;
     appearance: none;
     -webkit-appearance: none;
-    border: 1px solid var(--panel-border);
-    background: rgba(255,255,255,0.06);
-    color: var(--text);
+    border: 1px solid transparent;
+    background: var(--accent);
+    color: #0b1210;
     font-family: inherit;
-    font-size: 1.4rem;
+    font-size: 1rem;
     font-weight: 700;
+    letter-spacing: 0.08em;
     border-radius: 10px;
-    padding: 15px 0;
+    padding: 16px 0;
     touch-action: manipulation;
     -webkit-user-select: none;
     user-select: none;
     -webkit-touch-callout: none;
   }
-  .tc-btn:active { background: var(--accent-dim); border-color: var(--accent); }
-  .tc-hold { font-size: 0.85rem; letter-spacing: 0.03em; }
-  .tc-harddrop {
-    grid-column: 1 / -1;
-    background: var(--accent);
-    color: #0b1210;
-    border-color: transparent;
-    font-size: 0.95rem;
-    letter-spacing: 0.08em;
-  }
+  .tc-harddrop:active { background: #81c2b5; }
 }
