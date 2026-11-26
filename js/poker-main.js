@@ -12,11 +12,15 @@ function cardEl(card) {
     return el;
   }
   el.className = 'pcard ' + (RED_SUITS[card.suit] ? 'red' : 'black');
+  const corner = document.createElement('div');
+  corner.className = 'corner';
+  corner.textContent = PokerCore.rankLabel(card.rank) + SUIT_SYMBOL[card.suit];
   const rank = document.createElement('div');
   rank.textContent = PokerCore.rankLabel(card.rank);
   const suit = document.createElement('div');
   suit.className = 'suit-sym';
   suit.textContent = SUIT_SYMBOL[card.suit];
+  el.appendChild(corner);
   el.appendChild(rank);
   el.appendChild(suit);
   return el;
